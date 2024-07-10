@@ -12,7 +12,7 @@ app.use(cors())
 app.get('/', (c) => c.text('You server is running! Check backend routes .'));
 
 app.route('/api/v1/users', userRouter)
-app.route('/api/v1/posts', postRouter)
+app.route('/api/v1/blog', postRouter)
 
 
 export default app
