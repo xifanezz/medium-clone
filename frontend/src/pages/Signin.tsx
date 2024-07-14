@@ -41,7 +41,7 @@ export const Signin = () => {
 
                         //Received response has auth token 
                         localStorage.setItem("token",response.data.token);
-                        navigate("/blog"  , { state: { email : email}})
+                        navigate("/blogs"  , { state: { username : email}})
 
                      }catch(error){
 

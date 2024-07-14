@@ -42,7 +42,7 @@ export const Signup = () => {
 
                         //Received response has auth token 
                         localStorage.setItem("token",response.data.token);
-                        navigate("/blog"  , { state: { username: name, password : password }})
+                        navigate("/blogs"  , { state: { username: name}})
 
                      }catch(error){
 

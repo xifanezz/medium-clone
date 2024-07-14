@@ -1,0 +1,115 @@
+/* Bubble menu styling */
+.bubble-menu {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+  }
+  
+  .bubble-menu button {
+    margin: 0 4px;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .bubble-menu button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Text field styling */
+  .ProseMirror {
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-family: 'Times', serif;
+    line-height: 1.6;
+    font-size: 20px;
+    min-height: 200px;
+    border: none;
+    box-shadow: none;
+    
+ 
+  }
+  
+  .ProseMirror:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+    
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #adb5bd;
+    pointer-events: none;
+    height: 0;
+    border: none;
+    box-shadow: none;
+  }
+  .tiptap{
+    >*+*{
+      margin-top: 0.75em;
+    }
+    h1{
+      font-size: 2em;
+    }
+    h2{
+      font-size: 1.6em;
+    }
+    h3{
+      font-size: 1.2em;
+    }
+
+    p {
+        font-size: 1em;
+        line-height: 1.6;
+    }
+    ul{
+        list-style-type: disc;
+        margin-left: 1.5rem;
+    }
+    ul li p {
+        margin: 0;
+    }
+    ol{
+        list-style-type: decimal;
+        margin-left: 1.5rem;
+    }
+    ol li p {
+        margin: 0;
+    }
+
+    blockquote{
+        border-left: 4px solid #818080;
+        padding-left: 1rem;
+        margin: 1rem 0;
+    }
+    blockquote p{
+        font-style: italic;
+    }
+    hr {
+        border: none;
+        border-top: 1px solid #e0e0e0;
+        margin: 1rem 0;
+    }
+    a{
+        color: #007bff;
+        text-decoration: underline;
+    }
+    pre {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+    }
+    code {
+        background-color: #cdcccc;
+        padding: 0.2em 0.4em;
+        border-radius: 0.3em;
+        font-size: 85%;
+        color: #dc1e1e;
+    }
+
+  }

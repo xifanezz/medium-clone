@@ -2,7 +2,7 @@ import Avatar from "./Avatar";
 
 
 export function BlogCard({post}: any): JSX.Element {
-  const time: number = Math.floor(Math.random() * 10) + 1;
+  const time: number = Math.ceil((post.description).length /100);
 
  const url: string = "https://random.imagecdn.app/150/150";
 

@@ -11,6 +11,13 @@
   },
   "dependencies": {
     "@sumitbhuia/medium_common": "^1.0.0",
+    "@tiptap/extension-bubble-menu": "^2.5.0",
+    "@tiptap/extension-link": "^2.5.0",
+    "@tiptap/extension-placeholder": "^2.5.0",
+    "@tiptap/extension-underline": "^2.5.0",
+    "@tiptap/pm": "^2.4.0",
+    "@tiptap/react": "^2.4.0",
+    "@tiptap/starter-kit": "^2.4.0",
     "axios": "^1.7.2",
     "flowbite-react": "^0.10.1",
     "react": "^18.3.1",
