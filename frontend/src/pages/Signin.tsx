@@ -36,11 +36,15 @@ export const Signin = () => {
                                 password : password
                             }
                         )
-                        // console.log(response);
+                        console.log(response.data);
 
 
                         //Received response has auth token 
                         localStorage.setItem("token",response.data.token);
+                        localStorage.setItem("username",response.data.user.username);
+                        localStorage.setItem("email",response.data.user.email);
+                        localStorage.setItem("userId",response.data.user.userId);
+
                         navigate("/blogs"  , { state: { username : email}})
 
                      }catch(error){

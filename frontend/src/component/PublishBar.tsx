@@ -25,7 +25,7 @@ export function PublishBar({name, onPublish}:PublishBarProps) : JSX.Element{
 
                 <div className="flex justify-center items-center text-gray-600">
                     {/* Publish page  pusblish button */}
-                    <button className="mr-4 flex  justify-center items-center p-3 py-4 rounded-full w-20 h-6 bg-green-600 text-sm text-white" onClick={onPublish}> 
+                    <button className="mr-4 flex  justify-center items-center p-3 py-4 rounded-full w-20 h-6  bg-green-500 hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring focus:ring-green-300  text-sm text-white   "  onClick={onPublish}> 
                         Publish
                     </button>
                     {/* Options icon */}

@@ -123,6 +123,11 @@ export async function signin(c:Context) {
             {
                 msg:  'Signed in successfully',
                 token : token,
+                user : {
+                    userId : checkUser.id,
+                    username : checkUser.username,
+                    email : checkUser.email
+                }
             }, 
             StatusCodes.OK
         );

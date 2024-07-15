@@ -7,10 +7,8 @@ export async function authMiddleware(c:any, next : Next){
         const authHeader: string = c.req.header('authorization') || '';
         const token : string = authHeader.split(' ')[1];
 
-       
-        
-        if(!authHeader || !authHeader.startsWith('Bearer ')){
-            c.body('Please Signin' ,403);
+        if(!authHeader || !authHeader.startsWith('Bearer ') || !token){
+            return c.body('Please Signin' ,403);
         }
         try{
             const decoded = await Jwt.verify(token ,c.env.JWT_SECRET); 

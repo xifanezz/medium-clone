@@ -3,7 +3,7 @@ import {BlogCard} from "../component/BlogCard";
 import { useEffect, useState } from "react";
 import * as Spinners from "react-loader-spinner";
 import { Appbar } from "../component/Appbar";
-import { useLocation } from "react-router-dom";
+
 
 
 interface BlogProps {
@@ -18,9 +18,7 @@ interface BlogProps {
 export const Blogs = () => {
     const [posts , setPosts] = useState<BlogProps[]>([]);
     const [loading, setLoading] = useState(true);
-    const location = useLocation();
-    const username : string = location.state.username.toString();
-    const name = (username.split("@")[0])[0];
+    const name:string = localStorage.getItem("username")||`!`;
    
   
 

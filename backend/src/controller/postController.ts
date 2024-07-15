@@ -57,13 +57,13 @@ export async function createPost(c:Context) {
         // Because c.get(`userId`) returned an object not an int
         // something like this {userId : 1}
         const userId = c.get(`userId`).userId;
-        
 
+        
         const newPost = await prisma.post.create({
             data:{
                 title,
                 description,
-                userId :userId,
+                userId,
             }
         })
 
@@ -86,12 +86,15 @@ export async function getPostById(c:Context) {
          const pid:number  = Number(c.req.param('id'));
 
          // Whenever checking if exists or not 
-         // give two parameters to find and check authenticiy
+         // give two parameters to findUnique (i.e.post only of that user)
          const post = await prisma.post.findUnique({
              where:{
                  id:pid,
-                 userId : c.get(`userId`).userId
+                //  userId : c.get(`userId`).userId
              }, 
+                include:{
+                    User:true
+                }
          });
 
          if(!post){

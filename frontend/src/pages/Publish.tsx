@@ -1,8 +1,9 @@
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PublishBar } from "../component/PublishBar";
 import  Tiptap  from "../component/Tiptap";
 import { Editor } from '@tiptap/core';
 import { useState } from 'react';
+import axios from "axios";
 
 
 export function Publish():JSX.Element {
@@ -11,15 +12,36 @@ export function Publish():JSX.Element {
     //Initializing the editor in a state , so that it can be used in the Tiptap.tsx & PublishBar.tsx 
     // This is also the description of the article
     const [editor, setEditor] = useState<Editor | null>(null);
-    const location = useLocation();
-    const initials = location.state.name;
+    const name:string = localStorage.getItem("username") ||`!`;
+
+    const navigate = useNavigate();
+
+   
+
 
     const handleSave = () => {
         if (editor) {
           const html = editor.getHTML();
-          console.log(html);
-          // Send to backend here
-          console.log(title);
+
+          async function sendData() 
+            {
+                try {
+                        const response = await axios.post("https://backend.sumitbhuia.workers.dev/api/v1/blog/create",{
+                            title,
+                            description : html,
+                            // userId, // optional because we are getting userId from the token in backend
+                        }, {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        });  
+                        navigate(`/blog/${response.data.id}`); 
+                    } 
+                catch (error) {
+                return  console.error(error);
+                }
+            }
+            sendData();
         }
 
         else {
@@ -30,7 +52,7 @@ export function Publish():JSX.Element {
    
 
     return (<div className="p-4 mx-40">
-        <PublishBar name={initials} onPublish={handleSave} />
+        <PublishBar name={name} onPublish={handleSave} />
 
         <div className="mx-36">
             {/* Title */}
