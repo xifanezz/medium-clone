@@ -81,7 +81,7 @@ export function Blog(): JSX.Element {
 
     return (
         <div className="px-10 py-3">
-        <Appbar name={name} />
+        <Appbar name={localStorage.getItem("username")||""} />
         <div className="container mx-auto p-6 grid grid-cols-12 gap-6 ">
             <div className="col-span-8">
                 <div className="font-serif text-5xl mt-8 mb-4">{blog?.title}</div>
