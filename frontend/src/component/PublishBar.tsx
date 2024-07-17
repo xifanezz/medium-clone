@@ -1,7 +1,7 @@
 import Avatar from "./Avatar";
 import * as Icons from "../Icons";
 import { Link } from "react-router-dom";
-// import { handleEditorContent } from "./Tiptap";
+import mediumText from '../../public/mediumText.png'
 
 interface PublishBarProps {
     name: string;
@@ -20,7 +20,7 @@ export function PublishBar({name, onPublish}:PublishBarProps) : JSX.Element{
     return (
         <div className="flex justify-between items-center bg-white">
             <Link to={"/blogs"}><div>
-                <img className="flex-none cursor-pointer h-4 sm:h-5 md:h-6 lg:h-7"  alt="" src="/assets/mediumText.png "/>
+                <img className="flex-none cursor-pointer h-4 sm:h-5 md:h-6 lg:h-7"  alt="" src={mediumText}/>
             </div></Link>
             <div>
 

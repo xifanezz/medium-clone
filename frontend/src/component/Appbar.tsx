@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Avatar from "./Avatar";
 import * as Icons from '../Icons'
+import medium from '../../public/medium.png'
 
 interface AppbarProps {
     name: string;
@@ -16,7 +17,7 @@ export function Appbar({name}:AppbarProps) : JSX.Element{
     return (
         <div className="flex justify-between items-center bg-white border-b p-2">
             <Link to={"/blogs"}><div>
-                <img className="flex-none justify-center items-center cursor-pointer h-10"  alt="Medium" src="/assets/medium.png"/>
+                <img className="flex-none justify-center items-center cursor-pointer h-10"  alt="Medium" src={medium}/>
             </div></Link>
             <div>
 
