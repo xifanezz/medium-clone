@@ -16,6 +16,13 @@ export function Publish():JSX.Element {
 
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("token");
+
+   
+    if(!token){
+        navigate("/signin");
+    }
+
    
 
 
@@ -51,12 +58,17 @@ export function Publish():JSX.Element {
    
    
 
-    return (<div className="p-4 mx-40">
-        <PublishBar name={name} onPublish={handleSave} />
-
-        <div className="mx-36">
+    return (<div className="publish-container ">
+        
+        <div className="border-b py-1 px-4 sm:py-2 sm:px-4 md:py-3 md:px-6 lg:py-4 lg:px-8">
+            <PublishBar name={name} onPublish={handleSave} />
+        </div>
+        <div className="content-area pt-10">
             {/* Title */}
-            <textarea  placeholder="Title" className="font-serif text-5xl text- mt-20  focus:outline-none" onChange={(e)=>setTitle(e.target.value)} />
+            <textarea  
+            placeholder="Title" 
+            className="title-input" 
+            onChange={(e)=>setTitle(e.target.value)} />
             {/* Description */}
             <Tiptap  setEditor={setEditor}/>
         </div>

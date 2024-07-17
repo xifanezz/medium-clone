@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Avatar from "./Avatar";
 import * as Icons from '../Icons'
 
@@ -15,9 +15,9 @@ export function Appbar({name}:AppbarProps) : JSX.Element{
     const navigate = useNavigate();
     return (
         <div className="flex justify-between items-center bg-white border-b p-2">
-            <div>
+            <Link to={"/blogs"}><div>
                 <img className="flex-none justify-center items-center cursor-pointer h-10"  alt="Medium" src="/src/assets/medium.png"/>
-            </div>
+            </div></Link>
             <div>
 
             <div className="flex justify-center items-center text-gray-600">

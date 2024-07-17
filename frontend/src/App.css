@@ -28,6 +28,14 @@
     min-height: 200px;
     border: none;
     box-shadow: none;
+
+    @media (max-width: 768px) {
+      font-size: 18px;
+      
+    }
+    @media (max-width: 480px) {
+      font-size: 16px;
+    }
     
  
   }
@@ -48,18 +56,9 @@
     border: none;
     box-shadow: none;
   }
-  .tiptap{
+  .tiptap , .description{
     >*+*{
       margin-top: 0.75em;
-    }
-    h1{
-      font-size: 2em;
-    }
-    h2{
-      font-size: 1.6em;
-    }
-    h3{
-      font-size: 1.2em;
     }
 
     p {
@@ -114,68 +113,86 @@
 
   }
 
-  .description{
-    >*+*{
+
+  @media (max-width: 768px) {
+    .publish-container {
+      padding: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .publish-container {
+      padding: 5px;
+    }
+  }
+
+  .content-area {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .title-input {
+    padding: 2rem 1rem 1rem;
+    font-family: serif;
+    font-size: 2.7rem;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    padding-top: 3rem;
+  }
+  
+  @media (max-width: 768px) {
+    .title-input {
+      font-size: 2.2rem;
+      padding: 1.5rem 0.75rem 0.75rem;
+      padding-top: 2rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .title-input {
+      font-size: 1.8rem;
+      padding: 1rem 0.5rem 0.5rem;
+      padding-top: 1rem;
+    }
+  }
+
+  .tiptap, .description {
+    > * + * {
       margin-top: 0.75em;
     }
-    h1{
+    h1 {
+      margin-top: 1em;
+      margin-bottom: 0.5em;
       font-size: 2em;
     }
-    h2{
+    h2 {
+      margin-top: 1em;
+      margin-bottom: 0.5em;
       font-size: 1.6em;
     }
-    h3{
+    h3 {
+      margin-top: 1em;
+      margin-bottom: 0.5em;
       font-size: 1.2em;
     }
-
-    p {
-        font-size: 1em;
-        line-height: 1.6;
+  
+    @media (max-width: 768px) {
+      h1 { font-size: 1.8em; }
+      h2 { font-size: 1.4em; }
+      h3 { font-size: 1.1em; }
     }
-    ul{
-        list-style-type: disc;
-        margin-left: 1.5rem;
+  
+    @media (max-width: 480px) {
+      h1 { font-size: 1.6em; }
+      h2 { font-size: 1.3em; }
+      h3 { font-size: 1em; }
     }
-    ul li p {
-        margin: 0;
-    }
-    ol{
-        list-style-type: decimal;
-        margin-left: 1.5rem;
-    }
-    ol li p {
-        margin: 0;
-    }
-
-    blockquote{
-        border-left: 4px solid #818080;
-        padding-left: 1rem;
-        margin: 1rem 0;
-    }
-    blockquote p{
-        font-style: italic;
-    }
-    hr {
-        border: none;
-        border-top: 1px solid #e0e0e0;
-        margin: 1rem 0;
-    }
-    a{
-        color: #007bff;
-        text-decoration: underline;
-    }
-    pre {
-        background-color: #f8f9fa;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        overflow-x: auto;
-    }
-    code {
-        background-color: #cdcccc;
-        padding: 0.2em 0.4em;
-        border-radius: 0.3em;
-        font-size: 85%;
-        color: #dc1e1e;
-    }
-
   }
+
+
+
+  
