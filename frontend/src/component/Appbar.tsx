@@ -16,7 +16,7 @@ export function Appbar({name}:AppbarProps) : JSX.Element{
     return (
         <div className="flex justify-between items-center bg-white border-b p-2">
             <Link to={"/blogs"}><div>
-                <img className="flex-none justify-center items-center cursor-pointer h-10"  alt="Medium" src="./src/assets/medium.png"/>
+                <img className="flex-none justify-center items-center cursor-pointer h-10"  alt="Medium" src="/assets/medium.png"/>
             </div></Link>
             <div>
 

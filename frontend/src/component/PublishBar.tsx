@@ -20,7 +20,7 @@ export function PublishBar({name, onPublish}:PublishBarProps) : JSX.Element{
     return (
         <div className="flex justify-between items-center bg-white">
             <Link to={"/blogs"}><div>
-                <img className="flex-none cursor-pointer h-4 sm:h-5 md:h-6 lg:h-7"  alt="" src="./src/assets/mediumText.png "/>
+                <img className="flex-none cursor-pointer h-4 sm:h-5 md:h-6 lg:h-7"  alt="" src="/assets/mediumText.png "/>
             </div></Link>
             <div>
 
