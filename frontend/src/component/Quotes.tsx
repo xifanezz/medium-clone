@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as Spinners from "react-loader-spinner";
 
+
 interface Quote {
-  content: string;
+  quote: string;
   author: string;
 }
 
@@ -20,8 +21,12 @@ export function Quotes(): JSX.Element {
     setIsLoading(true);
 
     try {
-      const response = await axios.get<Quote>("https://api.quotable.io/random");
-      setQuote(response.data);
+      const response = await axios.get<Quote[]>("https://api.api-ninjas.com/v1/quotes",{
+        headers: { 'X-Api-Key': import.meta.env.VITE_xapikey }
+      });
+      const firstQuote = response.data[0];
+      setQuote(firstQuote);
+
     } catch (err) {
         console.error(err);
 
@@ -49,7 +54,7 @@ export function Quotes(): JSX.Element {
       )}
 
       <>
-        <p className="text-3xl font-semibold mb-4">{quote?.content}</p>
+        <p className="text-3xl font-semibold mb-4">{quote?.quote}</p>
         <p className="text-md italic items-start ">{quote?.author}</p>
       </>
 
