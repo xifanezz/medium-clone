@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as Spinners from "react-loader-spinner";
 
 
+
 interface Quote {
   quote: string;
   author: string;
@@ -22,8 +23,10 @@ export function Quotes(): JSX.Element {
 
     try {
       const response = await axios.get<Quote[]>("https://api.api-ninjas.com/v1/quotes",{
-        headers: { 'X-Api-Key': import.meta.env.VITE_xapikey }
+        headers: { 'X-Api-Key': process.env.NEXT_PUBLIC_X_API_KEY}
       });
+      
+      
       const firstQuote = response.data[0];
       setQuote(firstQuote);
 

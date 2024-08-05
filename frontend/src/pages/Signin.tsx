@@ -53,6 +53,7 @@ export const Signin = () => {
 
     return (
         // Whole screen
+        <form>
         <div className="flex min-h-screen bg-gradient-to-br from-blue-100 to-white">
             {/* Signup form */}
             <div className="w-full lg:w-1/2 p-4 lg:p-8 flex justify-center items-center  bg-blend-luminosity">
@@ -92,5 +93,6 @@ export const Signin = () => {
                 <Quotes></Quotes>
             </div>
         </div>
+        </form>
     );
 };
