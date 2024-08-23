@@ -18,7 +18,7 @@ export const Signup = () => {
 
     return (
         <form>
-        // Whole screen
+        {/* Whole screen */}
         <div className="flex min-h-screen bg-gradient-to-br from-blue-100 to-white">
            
         {/* Signup form */}
