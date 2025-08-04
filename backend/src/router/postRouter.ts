@@ -1,12 +1,17 @@
 import { Hono } from "hono";
-import { createPost, getAllPosts, getPostById, getPostOwner, updatePostById } from "../controller/postController";
-import { requireAuth } from "../middleware/auth";
+import {
+  createPost,
+  deletePostById,
+  getAllPosts,
+  getPostById,
+  updatePostById,
+} from "../controller/postController";
+import { requireAuth, optionalAuth } from "../middleware/auth";
 export const postRouter = new Hono();
 
-postRouter.get('/can-edit-post',requireAuth,getPostOwner);
-postRouter.get('/allPosts', getAllPosts); 
+postRouter.get("/allPosts", optionalAuth, getAllPosts);
+postRouter.get("/:id", optionalAuth, getPostById);
 
-postRouter.post('/create',requireAuth, createPost); 
-postRouter.get('/:id',requireAuth, getPostById); 
-postRouter.put('/edit/:id',requireAuth, updatePostById); 
-
+postRouter.post("/create", requireAuth, createPost);
+postRouter.put("/edit/:id", requireAuth, updatePostById);
+postRouter.delete("/delete/:id", requireAuth,deletePostById);
