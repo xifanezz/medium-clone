@@ -3,8 +3,14 @@ import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Bookmark, Share2 } from "lucide-react";
 import Avatar from "./Avatar";
 import parser from "html-react-parser";
-import { BlogProps } from "../types";
+import { Post } from "../types";
 import { api } from "../api";
+
+export interface BlogProps {
+  post: Post;
+  showAuthorInfo?: boolean;
+  showEngagementStats?: boolean;
+}
 
 export function BlogCard({
   post,
@@ -55,8 +61,6 @@ export function BlogCard({
     setIsLoading(prev => ({ ...prev, clap: true }));
 
     try {
-      // No need to refetch; the API now returns the correct state.
-      // We can trust our optimistic update for the UI.
       await api.toggleClap(post.id);
     } catch (error) {
       console.error("Error toggling clap:", error);
@@ -68,9 +72,6 @@ export function BlogCard({
     }
   };
 
-  /**
-   * REFACTORED: Implements optimistic UI updates.
-   */
   const handleBookmarkClick = async () => {
     if (isLoading.bookmark) return;
 
@@ -143,18 +144,18 @@ export function BlogCard({
                 <div className="flex items-center gap-3 text-gray-500">
                   <button
                     onClick={(e) => handleEngagementClick(e, handleClapClick)}
-                    className={`flex items-center gap-1 hover:text-green-500 transition-colors ${isClapped ? "text-green-500" : "text-gray-500"} ${isLoading.clap ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`flex items-center gap-1 hover:text-red-500 transition-colors ${isClapped ? "text-red-500" : "text-gray-500"} ${isLoading.clap ? "opacity-50 cursor-not-allowed" : ""}`}
                     title="Clap for this article"
                     disabled={isLoading.clap}
                   >
-                    <Heart className={`h-4 w-4 ${isClapped ? "fill-green-500 text-green-500" : ""}`} />
+                    <Heart className={`h-4 w-4 ${isClapped ? "fill-red-500 text-red-500" : ""}`} />
                     <span className="text-xs font-sans">{clapCount > 0 ? clapCount : ""}</span>
                   </button>
                   <Link to={`/blog/${post.id}#comments`} onClick={(e) => e.stopPropagation()}>
                     <button className="flex items-center gap-1 hover:text-green-500 transition-colors" title="Responses">
                       <MessageCircle className="h-4 w-4" />
-                      {(post.responseCount || 0) > 0 && 
-                      <span className="text-xs font-sans">{(post.responseCount || 0) > 0 ? post.responseCount : ""}</span>
+                      {(post.responseCount || 0) > 0 &&
+                        <span className="text-xs font-sans">{(post.responseCount || 0) > 0 ? post.responseCount : ""}</span>
                       }
                     </button>
                   </Link>
