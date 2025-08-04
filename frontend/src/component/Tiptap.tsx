@@ -1,14 +1,11 @@
 import { useEditor, BubbleMenu, EditorContent } from '@tiptap/react'
-// import BubbleMenu from '@tiptap/extension-bubble-menu'
 import StarterKit from '@tiptap/starter-kit'
 import UnderLine from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import * as Icons from "../Icons";
 import { Editor } from '@tiptap/core';
-// import App from '../App.css'
 
-// All the extensions (i.e. plugins not included in the StarterKit) that you want to use are mentioned here
 const extensions =
   [
     StarterKit,
@@ -27,9 +24,14 @@ interface TiptapProps {
 
 const Tiptap = ({ setEditor, initialContent }: TiptapProps) => {
   const editor = useEditor({
-    extensions, // Define above
-    content: initialContent || "", // Can be empty for create new, or filled with existing for editing
-    onUpdate: ({ editor }) => {
+    extensions,
+    content: initialContent || "",
+
+    // Used onCreate instead of onUpdate.
+    // This gives the parent component the editor instance just once,
+    // preventing re-renders on every keystroke. The parent can then
+    // get the latest content by calling `editor.getHTML()` when it needs to.
+    onCreate: ({ editor }) => {
       setEditor(editor);
     },
     editorProps: {
@@ -39,7 +41,6 @@ const Tiptap = ({ setEditor, initialContent }: TiptapProps) => {
     },
   });
 
-  // To ensure editor is initalized and not null
   if (!editor) {
     return null;
   }
