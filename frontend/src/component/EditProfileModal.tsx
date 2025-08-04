@@ -1,5 +1,6 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-import { UserProfile, UpdateUserProfilePayload } from '../types'; // Adjust path as needed
+import { UserProfile, UpdateUserProfilePayload } from '../types';
+import { CloseIcon } from '../Icons'
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -10,12 +11,23 @@ interface EditProfileModalProps {
   saveError: string | null;
 }
 
-// SVG Icon for close button
-const CloseIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
+
+// A reusable input component for this form
+const FormInput: React.FC<{ id: string; name: keyof UpdateUserProfilePayload; label: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement>) => void; placeholder?: string; type?: string; }> =
+  ({ id, name, label, value, onChange, placeholder, type = "text" }) => (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <input
+        type={type}
+        name={name}
+        id={id}
+        value={value}
+        onChange={onChange}
+        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
+        placeholder={placeholder}
+      />
+    </div>
+  );
 
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -29,8 +41,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [formData, setFormData] = useState<UpdateUserProfilePayload>({});
 
   useEffect(() => {
-    // Pre-fill form when profile data is available or changes
-    if (profile) {
+    // Pre-fill form when the modal opens or the profile data changes
+    if (profile && isOpen) {
       setFormData({
         username: profile.username || '',
         displayName: profile.displayName || '',
@@ -41,7 +53,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         website: profile.website || '',
       });
     }
-  }, [profile, isOpen]); // Re-initialize form when modal opens or profile changes
+  }, [profile, isOpen]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -50,28 +62,23 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Filter out empty strings for optional fields to avoid sending them as ""
-    // The backend should handle undefined vs empty string appropriately if needed.
-    const payload: UpdateUserProfilePayload = {};
+
+    // create a payload with only the fields that have changed.
+    const changedData: UpdateUserProfilePayload = {};
     for (const key in formData) {
-        const typedKey = key as keyof UpdateUserProfilePayload;
-        if (formData[typedKey] !== profile[typedKey as keyof UserProfile] && formData[typedKey] !== null) {
-             // Only include fields that have changed from original profile or are not null
-            if (formData[typedKey] === '' && (profile[typedKey as keyof UserProfile] === null || profile[typedKey as keyof UserProfile] === undefined)) {
-                // If new value is empty string and original was null/undefined, don't send (treat as unchanged or explicitly cleared if backend handles null)
-                // Or, if you want to allow clearing fields by sending empty string:
-                // payload[typedKey] = formData[typedKey];
-            } else {
-                 payload[typedKey] = formData[typedKey];
-            }
-        } else if (formData[typedKey] !== null && formData[typedKey] !== profile[typedKey as keyof UserProfile]) {
-            // This case handles if original was null and new value is not null
-             payload[typedKey] = formData[typedKey];
-        }
+      const typedKey = key as keyof UpdateUserProfilePayload;
+      // Compare the current form value with the original profile value
+      if (formData[typedKey] !== profile[typedKey as keyof UserProfile]) {
+        changedData[typedKey] = formData[typedKey];
+      }
     }
-    // If username is part of formData and hasn't changed, don't send it unless it's explicitly allowed
-    // For this example, we send all fields that are in formData
-    await onSave(formData);
+
+    // Only call the onSave function if there are actual changes
+    if (Object.keys(changedData).length > 0) {
+      await onSave(changedData);
+    } else {
+      onClose(); // If no changes, just close the modal
+    }
   };
 
   if (!isOpen) return null;
@@ -96,35 +103,28 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-6 space-y-6">
           {saveError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" role="alert">
-              <strong className="font-medium">Error:</strong> {saveError}
+              <strong>Error:</strong> {saveError}
             </div>
           )}
 
-          {/* Form Fields */}
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              value={formData.username || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="e.g., cooldev123"
-            />
+          {/* Image Previews */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Avatar & Cover Image</label>
+              <div className="relative h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                <img src={formData.coverImage || 'https://placehold.co/600x200/EEE/333?text=Cover'} alt="Cover preview" className="w-full h-full object-cover rounded-lg" />
+                <div className="absolute -bottom-8 left-6 w-20 h-20 bg-white rounded-full border-4 border-white shadow-md">
+                  <img src={formData.avatar || 'https://placehold.co/100x100/EEE/333?text=Avatar'} alt="Avatar preview" className="w-full h-full object-cover rounded-full" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-            <input
-              type="text"
-              name="displayName"
-              id="displayName"
-              value={formData.displayName || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="e.g., Alex Smith"
-            />
+
+          <div className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput id="displayName" name="displayName" label="Display Name" value={formData.displayName || ''} onChange={handleChange} placeholder="e.g., Alex Smith" />
+            <FormInput id="username" name="username" label="Username" value={formData.username || ''} onChange={handleChange} placeholder="e.g., cooldev123" />
           </div>
+
           <div>
             <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
             <textarea
@@ -137,53 +137,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               placeholder="Tell us a bit about yourself"
             />
           </div>
-          <div>
-            <label htmlFor="avatar" className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-            <input
-              type="url"
-              name="avatar"
-              id="avatar"
-              value={formData.avatar || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="https://example.com/avatar.png"
-            />
-          </div>
-          <div>
-            <label htmlFor="coverImage" className="block text-sm font-medium text-gray-700 mb-1">Cover Image URL</label>
-            <input
-              type="url"
-              name="coverImage"
-              id="coverImage"
-              value={formData.coverImage || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="https://example.com/cover.png"
-            />
-          </div>
-          <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            <input
-              type="text"
-              name="location"
-              id="location"
-              value={formData.location || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="e.g., San Francisco, CA"
-            />
-          </div>
-          <div>
-            <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
-            <input
-              type="url"
-              name="website"
-              id="website"
-              value={formData.website || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow text-gray-800 placeholder-gray-400"
-              placeholder="https://your-website.com"
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput id="avatar" name="avatar" label="Avatar URL" value={formData.avatar || ''} onChange={handleChange} placeholder="https://..." type="url" />
+            <FormInput id="coverImage" name="coverImage" label="Cover Image URL" value={formData.coverImage || ''} onChange={handleChange} placeholder="https://..." type="url" />
+            <FormInput id="location" name="location" label="Location" value={formData.location || ''} onChange={handleChange} placeholder="e.g., San Francisco, CA" />
+            <FormInput id="website" name="website" label="Website URL" value={formData.website || ''} onChange={handleChange} placeholder="https://..." type="url" />
           </div>
         </form>
 
@@ -199,15 +158,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </button>
           <button
             type="submit"
-            onClick={handleSubmit} // Also trigger form submission
+            onClick={handleSubmit}
             disabled={isSaving}
             className="px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 flex items-center"
           >
             {isSaving ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                 </svg>
                 Saving...
               </>

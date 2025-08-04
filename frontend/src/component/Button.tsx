@@ -2,7 +2,6 @@ interface ButtonProps {
     label: string;
     onClick: () => void;
     icon?: React.ReactNode;
-    // Added optional props for better flexibility
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
     className?: string;
