@@ -18,7 +18,6 @@ export const googleSignIn = async () => {
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) console.error("Sign out error:", error.message);
-  localStorage.clear(); // Clear any custom localStorage items
 };
 
 export const Signin = () => {
@@ -38,18 +37,7 @@ export const Signin = () => {
       if (error) throw error;
 
       if (data.user) {
-        // Fetch user data from your User table (optional)
-        const { data: userData } = await supabase
-          .from('User')
-          .select('username')
-          .eq('id', data.user.id)
-          .single();
-
-        localStorage.setItem("username", userData?.username || "");
-        localStorage.setItem("email", data.user.email || email);
-        localStorage.setItem("userId", data.user.id);
-
-        navigate("/blogs", { state: { username: userData?.username || email } });
+        navigate("/blogs");
       }
     } catch (err: any) {
       setError(err.message || "Unable to login. Please try again.");

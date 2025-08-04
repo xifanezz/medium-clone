@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Quotes } from "../component/Quotes";
 import * as Icons from "../Icons";
 import { supabase } from "../supabaseClient";
-import { Google } from "./Signin"; // Assuming Google SVG is in Signin
+import { Google } from "./Signin";
 
 export const googleSignIn = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -37,18 +37,13 @@ export const Signup = () => {
       });
       if (error) throw error;
 
-      // Create a user record in your User table
+      // Create a user record in User table
       if (data.user) {
         await supabase.from('User').insert({
           id: data.user.id,
           email: data.user.email,
           username: name,
         });
-
-        // Store user details in localStorage (optional, since Supabase manages session)
-        localStorage.setItem("username", name);
-        localStorage.setItem("email", data.user.email || email);
-        localStorage.setItem("userId", data.user.id);
 
         navigate("/signin", { state: { username: name } });
       }

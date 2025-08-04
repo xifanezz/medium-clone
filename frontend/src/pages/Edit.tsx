@@ -1,15 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense, useRef, useCallback } from "react";
 import { Editor } from '@tiptap/core';
 import { Post } from "../types";
 import { api } from "../api";
-import { ThemeSpinner } from "../component/Spinner";
-import { Header, HeaderPresets } from "../component/Header";
-
-// 1. Dynamically import the Tiptap component using React.lazy
+import { EditPageSkeleton } from "../component/Skeleton";
+import { useAuth } from "../AuthContext";
+import { usePageAction } from "../PageActionContext";
 const Tiptap = lazy(() => import("../component/Tiptap"));
 
-// 2. Create a simple loading component to show while the editor is loading
 const EditorPlaceholder = () => (
   <div className="w-full min-h-[400px] pt-4">
     <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none">
@@ -18,127 +16,121 @@ const EditorPlaceholder = () => (
   </div>
 );
 
-
 export function Edit(): JSX.Element {
   const [blog, setBlog] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isPostLoading, setIsPostLoading] = useState(true);
   const [error, setError] = useState<string>("");
-  const [title, setTitle] = useState("");
-  const [editor, setEditor] = useState<Editor | null>(null);
+  const [initialTitle, setInitialTitle] = useState("");
 
-  const { id } = useParams<{ id: any }>();
+  const editorRef = useRef<Editor | null>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  // Get the setter from context
+  const { setSaveAction } = usePageAction();
+
   useEffect(() => {
-    const fetchSessionAndBlog = async () => {
+    if (isAuthLoading || !id) return;
+    if (!currentUser) {
+      navigate('/signin');
+      return;
+    }
+    const fetchBlogForEdit = async () => {
       try {
-        if (!id) {
-          setError("Invalid blog id");
-          setIsLoading(false);
-          return;
+        setIsPostLoading(true);
+        const result = await api.getPostById(Number(id));
+        //#TODO if the database trigger changes to form another type of default username from email. Changes are needed here too
+        if (result.author.username !== (currentUser?.user_metadata.username || currentUser?.email?.split("@")[0])) {
+          setError("You are not authorized to edit this post.");
+          setBlog(null);
+        } else {
+          setBlog(result);
+          setInitialTitle(result.title);
         }
-        const result = await api.getPostById(id);
-        setBlog(result);
-        setTitle(result.title);
       } catch (err: any) {
-        setError(err.message || "Failed to load blog post. Please try again.");
+        setError(err.message || "Failed to load blog post.");
       } finally {
-        setIsLoading(false);
+        setIsPostLoading(false);
       }
     };
-    fetchSessionAndBlog();
-  }, [id, navigate]);
+    fetchBlogForEdit();
+  }, [id, currentUser, isAuthLoading, navigate]);
 
-  const handleSave = async () => {
-    if (!editor) {
-      setError("Editor is not initialized. Please try again.");
-      return;
+  const handleSave = useCallback(async () => {
+    const editor = editorRef.current;
+    const currentTitle = titleRef.current?.value || "";
+
+    if (!editor || !blog) {
+      const validationError = "Editor or blog data is not available.";
+      setError(validationError);
+      throw new Error(validationError);
     }
-    if (!title.trim()) {
-      setError("Title cannot be empty.");
-      return;
-    }
-    const description = editor.getHTML();
-    if (!description || description === "<p></p>") {
-      setError("Description cannot be empty.");
-      return;
+    if (!currentTitle.trim() || editor.getHTML() === "<p></p>") {
+      const validationError = "Title and description cannot be empty.";
+      setError(validationError);
+      throw new Error(validationError);
     }
     try {
       setError("");
-      setIsUpdating(true);
-      if (!id) {
-        setError("Invalid blog id");
-        setIsLoading(false);
-        return;
-      }
-      const result = await api.editPostById(id, title, description);
+      const result = await api.editPostById(blog.id, currentTitle, editor.getHTML());
       navigate(`/blog/${result.id}`);
     } catch (err: any) {
-      setError(err.message || "Failed to update blog post. Please try again.");
-    } finally {
-      setIsUpdating(false);
+      const errorMessage = err.message || "Failed to update blog post.";
+      setError(errorMessage);
+      throw err;
     }
-  };
+  }, [blog, navigate]); 
 
-  if (isLoading || isUpdating) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <ThemeSpinner />
-      </div>
-    );
+  // Effect to register the save action with the context
+  useEffect(() => {
+    // Only set the save action if a blog is loaded (and editable)
+    if (blog) {
+      setSaveAction(handleSave);
+    }
+    // On cleanup, we remove the action
+    return () => setSaveAction(null);
+  }, [blog, handleSave, setSaveAction]);
+
+  if (isAuthLoading || isPostLoading) {
+    return <EditPageSkeleton />;
   }
 
   if (error || !blog) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
         <div className="text-center py-12">
-          <h2 className="text-xl font-medium text-gray-900 mb-2">Post not found</h2>
-          <p className="text-gray-400 text-sm">
-            {error || "The requested post could not be found."}
-          </p>
+          <h2 className="text-xl font-medium text-gray-900 mb-2">Cannot Edit Post</h2>
+          <p className="text-gray-500 text-sm">{error || "The post could not be found or you lack permission."}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-3 overscroll-contain">
-      <Header
-        {...HeaderPresets.publish({
-          onPublish: handleSave,
-          isPublishing: isUpdating,
-          showNotifications: true,
-          showOptions: true
-        })} />
-
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        {error && (
-          <div className="mb-6 p-3 text-sm text-red-600 bg-red-50 rounded-lg">
-            {error}
-          </div>
-        )}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 w-full">
-            <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-              <textarea
-                placeholder="Title"
-                value={title}
-                onChange={(e) => {
-                  setError("");
-                  setTitle(e.target.value);
-                }}
-                className="w-full font-serif text-3xl sm:text-4xl lg:text-5xl mt-4 sm:mt-6 lg:mt-8 mb-2 sm:mb-4 border-b border-gray-300 focus:outline-none focus:border-gray-500 resize-none"
-                rows={2}
-              />
-              <div className="w-full min-h-[400px] max-h-[600px] overflow-auto">
-                {/* 3. Wrap the Tiptap component in Suspense */}
-                <Suspense fallback={<EditorPlaceholder />}>
-                  <Tiptap setEditor={setEditor} initialContent={blog.description || ""} />
-                </Suspense>
-              </div>
-            </form>
-          </div>
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 w-full">
+          <form>
+            <textarea
+              ref={titleRef}
+              key={initialTitle}
+              defaultValue={initialTitle}
+              placeholder="Title"
+              className="w-full font-serif text-3xl sm:text-4xl lg:text-5xl mt-4 sm:mt-6 lg:mt-8 mb-2 sm:mb-4 border-b border-gray-300 focus:outline-none focus:border-gray-500 resize-none bg-transparent"
+              rows={2}
+            />
+            <div className="w-full min-h-[400px] max-h-[600px] overflow-auto">
+              <Suspense fallback={<EditorPlaceholder />}>
+                <Tiptap
+                  setEditor={(editorInstance) => { editorRef.current = editorInstance; }}
+                  initialContent={blog.description || ""}
+                />
+              </Suspense>
+            </div>
+          </form>
         </div>
       </div>
     </div>

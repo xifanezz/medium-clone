@@ -1,13 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { Header, HeaderPresets } from "../component/Header";
 import { Editor } from '@tiptap/core';
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useRef, useEffect, useCallback } from 'react';
 import { api } from "../api";
+import { usePageAction } from "../PageActionContext";
 
-// 1. Dynamically import the Tiptap component
 const Tiptap = lazy(() => import("../component/Tiptap"));
 
-// 2. Create a placeholder to show while the editor is loading
 const EditorPlaceholder = () => (
   <div className="w-full min-h-[400px] pt-4">
     <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none">
@@ -16,95 +14,68 @@ const EditorPlaceholder = () => (
   </div>
 );
 
-
 export function Publish(): JSX.Element {
-  const [title, setTitle] = useState<string>("");
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [username, setUsername] = useState<string>("!");
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleSave = async () => {
-    if (!editor) {
-      setError("Editor is not initialized. Please try again.");
-      return;
-    }
+  const editorRef = useRef<Editor | null>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
 
-    if (!title.trim()) {
-      setError("Title cannot be empty.");
-      return;
-    }
+  // Get the setSaveAction function from context
+  const { setSaveAction } = usePageAction();
 
-    const description = editor.getHTML();
-    if (!description || description === "<p></p>") {
-      setError("Description cannot be empty.");
-      return;
+  const handleSave = useCallback(async () => {
+    const editor = editorRef.current;
+    const currentTitle = titleRef.current?.value || "";
+
+    if (!editor || !currentTitle.trim() || editor.getHTML() === "<p></p>") {
+      const validationError = "Title and description cannot be empty.";
+      setError(validationError);
+      throw new Error(validationError); // Throw error to stop the context's saving state
     }
 
     try {
-      setError(""); // Clear previous errors
-      setIsUpdating(true);
-
-      const result = await api.createPost(title, description);
-      setUsername(result.author.username);
+      setError("");
+      const result = await api.createPost(currentTitle, editor.getHTML());
       navigate(`/blog/${result.id}`);
-
     } catch (err: any) {
-      setError(err.message || "Failed to publish post. Please try again.");
-    } finally {
-      setIsUpdating(false);
+      const errorMessage = err.message || "Failed to publish post. Please try again.";
+      setError(errorMessage);
+      throw err; // Re-throw the error so the context knows the save failed
     }
-  };
+  }, [navigate]);
+
+  // This effect registers handleSave function with the global context
+  // so the header button can call it.
+  useEffect(() => {
+    setSaveAction(handleSave);
+    // On cleanup, remove the action to prevent it from being called on other pages
+    return () => setSaveAction(null);
+  }, [handleSave, setSaveAction]);
 
   return (
-    <div className="publish-container flex flex-col min-h-screen bg-white">
-      <div className="border-b py-1 px-4 sm:py-2 sm:px-4 md:py-3 md:px-6 lg:py-4 lg:px-8">
-        <Header
-          {...HeaderPresets.publish({
-            userName: username,
-            onPublish: handleSave,
-            isPublishing: isUpdating,
-            showNotifications: true,
-            showOptions: true
-          })}
-        />
-      </div>
-      <div className="content-area pt-10 px-4 sm:px-6 md:px-8 max-w-4xl mx-auto w-full">
-        {error && (
-          <div
-            className="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
-            role="alert"
-          >
-            <svg
-              className="flex-shrink-0 inline w-4 h-4 mr-3"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-            </svg>
-            <span className="sr-only">Error</span>
-            <div>
-              <span className="font-medium">Error:</span> {error}
-            </div>
-          </div>
-        )}
-        <textarea
-          placeholder="Title"
-          className="w-full text-3xl sm:text-4xl font-bold text-gray-900 placeholder-gray-400 border-none outline-none resize-none mb-6"
-          rows={2}
-          onChange={(e) => {
-            setError("");
-            setTitle(e.target.value);
-          }}
-        />
-        {/* 3. Wrap the Tiptap component in Suspense */}
-        <Suspense fallback={<EditorPlaceholder />}>
-          <Tiptap setEditor={setEditor} />
-        </Suspense>
-      </div>
+    // The empty div for the header is no longer needed
+    <div className="content-area pt-10 px-4 sm:px-6 md:px-8 max-w-4xl mx-auto w-full">
+      {error && (
+        <div className="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50" role="alert">
+          <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span className="sr-only">Error</span>
+          <div><span className="font-medium">Error:</span> {error}</div>
+        </div>
+      )}
+      <textarea
+        ref={titleRef}
+        defaultValue=""
+        placeholder="Title"
+        className="w-full text-3xl sm:text-4xl font-bold text-gray-900 placeholder-gray-400 border-none outline-none resize-none mb-6"
+        rows={2}
+        onChange={() => setError("")}
+      />
+      <Suspense fallback={<EditorPlaceholder />}>
+        <Tiptap setEditor={(editorInstance) => { editorRef.current = editorInstance; }} />
+      </Suspense>
     </div>
   );
 }
