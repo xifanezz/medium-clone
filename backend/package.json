@@ -2,7 +2,9 @@
   "name": "backend",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@google/genai": "^1.11.0",
@@ -15,12 +17,14 @@
     "hono": "^4.7.10"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.59",
     "@cloudflare/workers-types": "^4.20250523.0",
     "@types/node": "^22.15.21",
     "dotenv-cli": "^8.0.0",
     "prisma": "^6.8.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
     "wrangler": "^4.16.1"
   },
   "description": "``` npm install npm run dev ```",
