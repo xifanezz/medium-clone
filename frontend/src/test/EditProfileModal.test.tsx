@@ -5,16 +5,15 @@ import userEvent from '@testing-library/user-event';
 import { EditProfileModal } from '../component/EditProfileModal';
 import { UserProfile } from '../types';
 
-// --- FIX: The mock profile now includes all properties, matching the component's expectation ---
 const mockProfile: UserProfile = {
   id: '123',
   username: 'testuser',
   displayName: 'Test User',
   bio: 'Initial bio.',
   avatar: '',
-  coverImage: '', // Added
-  location: '',   // Added
-  website: '',    // Added
+  coverImage: '',
+  location: '',
+  website: '',
   joinedDate: new Date().toISOString(),
   followersCount: 0,
   followingCount: 0,
@@ -48,7 +47,6 @@ describe('EditProfileModal', () => {
     await user.click(saveButton);
 
     expect(handleSave).toHaveBeenCalledTimes(1);
-    // This assertion will now pass because the payload won't contain the extra empty string fields
     expect(handleSave).toHaveBeenCalledWith({
       displayName: 'Updated Display Name',
     });
@@ -73,7 +71,6 @@ describe('EditProfileModal', () => {
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     await user.click(saveButton);
 
-    // This assertion will now pass because no "changes" will be detected
     expect(handleSave).not.toHaveBeenCalled();
     expect(handleClose).toHaveBeenCalledTimes(1);
   });

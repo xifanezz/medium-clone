@@ -1,17 +1,14 @@
 /// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CommentSection } from '../component/CommentSection';
-import { useComments } from '../hooks/useComments';
+import * as useCommentsHook from '../hooks/useComments'; // Import the entire module as an object
 import { User } from '../types';
 
-// Mock the entire module. Vitest automatically replaces all its exports with mock functions.
-vi.mock('../useComments');
-
-// Mock child components to isolate the logic of CommentSection
-vi.mock('./CommentItem', () => ({ CommentItem: ({ comment }: { comment: any }) => <div>{comment.content}</div> }));
-vi.mock('./Avatar', () => ({ UserAvatar: () => <div data-testid="user-avatar" /> }));
+// Mock child components
+vi.mock('../component/CommentItem', () => ({ CommentItem: ({ comment }: { comment: any }) => <div>{comment.content}</div> }));
+vi.mock('../component/Avatar', () => ({ UserAvatar: () => <div data-testid="user-avatar" /> }));
 
 const mockCurrentUser: User = {
   username: 'testuser',
@@ -40,21 +37,24 @@ const createMockUseComments = (overrides = {}) => ({
   cancelEdit: vi.fn(),
   startReply: vi.fn(),
   cancelReply: vi.fn(),
-  ...overrides, // Allow tests to override specific properties
+  ...overrides,
 });
 
 describe('CommentSection', () => {
-  const mockedUseComments = useComments as Mock;
+  // --- FIX: Use vi.spyOn to control the mock for each test ---
+  let useCommentsSpy: any;
 
   beforeEach(() => {
-    mockedUseComments.mockClear();
+    // Before each test, we create a spy on the useComments function
+    useCommentsSpy = vi.spyOn(useCommentsHook, 'useComments');
   });
 
   it('should call handleSubmitComment when a new comment is submitted', async () => {
     const user = userEvent.setup();
     const handleSubmitComment = vi.fn();
 
-    mockedUseComments.mockReturnValue(createMockUseComments({ handleSubmitComment }));
+    // Now we can safely control the return value for this specific test
+    useCommentsSpy.mockReturnValue(createMockUseComments({ handleSubmitComment }));
 
     render(<CommentSection postId={1} currentUser={mockCurrentUser} />);
     
@@ -73,7 +73,7 @@ describe('CommentSection', () => {
       { id: 2, content: 'Second test comment', user: mockCurrentUser, replies: [] },
     ];
 
-    mockedUseComments.mockReturnValue(createMockUseComments({ comments: mockComments }));
+    useCommentsSpy.mockReturnValue(createMockUseComments({ comments: mockComments }));
 
     render(<CommentSection postId={1} currentUser={mockCurrentUser} />);
     
