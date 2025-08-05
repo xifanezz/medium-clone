@@ -31,7 +31,8 @@ export interface Tag {
 export interface Post {
   id: number;
   title: string;
-  description: string;
+  description?: string;
+  snippet?: string;
   createdAt: string;
   publishedAt?: string;
   readTime: number;

@@ -1,5 +1,3 @@
-// src/pages/Profile.tsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserProfile, Post, UpdateUserProfilePayload } from '../types';
@@ -12,6 +10,15 @@ import { ProfilePageSkeleton } from '../component/Skeleton';
 import { EditProfileModal } from '../component/EditProfileModal';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { Bookmark } from 'lucide-react';
+
+// Helper for backward compatibility
+const createSnippet = (htmlContent: string, length = 150) => {
+  if (!htmlContent) return '';
+  const plainText = htmlContent.replace(/<[^>]+>/g, '');
+  if (plainText.length <= length) return plainText;
+  return plainText.substring(0, length) + '...';
+};
 
 export const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'bookmarks'>('home');
@@ -35,9 +42,7 @@ export const Profile: React.FC = () => {
   useEffect(() => {
     const loadProfile = async () => {
       if (isAuthLoading) return;
-
       const targetUsername = username || currentUser?.user_metadata?.username;
-
 
       if (!targetUsername) {
         setError('Please log in to view your profile.');
@@ -72,7 +77,12 @@ export const Profile: React.FC = () => {
         setIsLoadingPosts(true);
         try {
           const postsData = await api.getUserPosts(profile.username);
-          setPosts(postsData.data);
+          // --- FIX: Ensure snippets are created for user posts for consistency ---
+          const formattedPosts = postsData.data.map((post: any) => ({
+            ...post,
+            snippet: post.snippet || createSnippet(post.description || ''),
+          }));
+          setPosts(formattedPosts);
         } catch (err) {
           console.error('Failed to load posts:', err);
         } finally {
@@ -86,6 +96,7 @@ export const Profile: React.FC = () => {
             id: parseInt(item.id, 10),
             title: item.title,
             description: item.description,
+            snippet: createSnippet(item.description),
             createdAt: item.createdAt,
             readTime: item.readTime,
             imageUrl: item.imageUrl,
@@ -124,32 +135,20 @@ export const Profile: React.FC = () => {
     try {
       const updatedProfile = await api.updateUserProfile(updatedData);
 
-      // Step 2 :only include fields that were actually changed and are relevant to the session.
       const supabaseMetadataUpdate: { [key: string]: any } = {};
-      if (updatedData.avatar !== undefined) {
-        supabaseMetadataUpdate.avatar_url = updatedData.avatar;
-      }
-      if (updatedData.displayName !== undefined) {
-        supabaseMetadataUpdate.full_name = updatedData.displayName;
-      }
-      if (updatedData.username !== undefined) {
-        supabaseMetadataUpdate.username = updatedData.username;
-      }
+      if (updatedData.avatar !== undefined) supabaseMetadataUpdate.avatar_url = updatedData.avatar;
+      if (updatedData.displayName !== undefined) supabaseMetadataUpdate.full_name = updatedData.displayName;
+      if (updatedData.username !== undefined) supabaseMetadataUpdate.username = updatedData.username;
 
-      // Step 3: If there are changes to sync, update Supabase Auth.
-      // This will trigger our onAuthStateChange listener and update the header.
       if (Object.keys(supabaseMetadataUpdate).length > 0) {
         const { error: supabaseError } = await supabase.auth.updateUser({
           data: supabaseMetadataUpdate
         });
-
         if (supabaseError) {
-          // Log the error but don't fail the whole operation, as our DB is already updated.
           console.warn("Failed to sync profile changes with Supabase Auth:", supabaseError);
         }
       }
 
-      // Step 4: Update the local React state to reflect the changes immediately.
       setProfile(updatedProfile);
       setIsEditModalOpen(false);
 
@@ -226,7 +225,16 @@ export const Profile: React.FC = () => {
                 <PostsList posts={posts} isLoading={isLoadingPosts} />
               )}
               {activeTab === 'bookmarks' && profile.isOwnProfile && (
-                <PostsList posts={bookmarks} isLoading={isLoadingBookmarks} />
+                <PostsList 
+                  posts={bookmarks} 
+                  isLoading={isLoadingBookmarks}
+                  // --- NEW: Pass custom empty state for bookmarks ---
+                  emptyState={{
+                    icon: <Bookmark className="mx-auto h-12 w-12 text-gray-300" />,
+                    title: "No saved posts",
+                    message: "You haven't saved any posts yet."
+                  }}
+                />
               )}
             </div>
           </div>
