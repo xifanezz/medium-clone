@@ -13,7 +13,7 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
   showBookmarks = false 
 }) => (
   <div className="border-b border-gray-200">
-    <nav className="flex space-x-6 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="flex space-x-6 max-w-2xl px-4 sm:px-6 lg:px-8">
       <button
         onClick={() => onTabChange('home')}
         className={`py-3 px-2 border-b-2 font-sans text-sm font-medium transition-colors ${
