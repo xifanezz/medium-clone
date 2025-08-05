@@ -55,24 +55,29 @@ export const api = {
   async editPostById(
     postId: number,
     title: string,
-    description: string
-  ): Promise<Post> {
+    description: string,
+    imageUrl?: string | null
+  ): Promise<{ id: number }> {
     const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/api/v1/blog/edit/${postId}`, {
       method: "PUT",
       headers,
-      body: JSON.stringify({ title, description }),
+      body: JSON.stringify({ title, description, imageUrl }),
     });
     if (!response.ok) await handleApiError(response);
     return (await response.json()).data;
   },
 
-  async createPost(title: string, description: string): Promise<Post> {
+  async createPost(
+    title: string,
+    description: string,
+    imageUrl?: string
+  ): Promise<{ id: number }> {
     const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/api/v1/blog/create`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ title, description, published: true }),
+      body: JSON.stringify({ title, description, imageUrl, published: true }),
     });
     if (!response.ok) await handleApiError(response);
     return (await response.json()).data;
@@ -105,7 +110,6 @@ export const api = {
   async updateUserProfile(
     payload: UpdateUserProfilePayload
   ): Promise<UserProfile> {
-    console.log("pay", payload);
     const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/api/v1/user/profile`, {
       method: "PUT",

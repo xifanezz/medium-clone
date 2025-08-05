@@ -14,11 +14,8 @@ export const Blog = () => {
   const [blog, setBlog] = useState<Post | null>(null);
   const [isBlogLoading, setIsBlogLoading] = useState(true);
   const [error, setError] = useState<string>("");
-
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Get auth state from global context
   const { user: currentUser, isLoading: isAuthLoading } = useAuth();
 
   useEffect(() => {
@@ -76,8 +73,6 @@ export const Blog = () => {
   }
 
 
-
-
   const cleanHtml = DOMPurify.sanitize(blog.description || "");
   const description = parse(cleanHtml);
   const name = blog.author.displayName || blog.author.username || "?";
@@ -89,30 +84,25 @@ export const Blog = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50">
-
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto px-6 sm:px-8 pt-12 pb-8">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium mb-6">
+        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium mb-6">
             <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
             Published {monthString} {day}, {year}
           </div>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-slate-900 mb-8 leading-tight tracking-tight">
-            {blog.title}
-          </h1>
-          <div className="inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl px-6 py-4 shadow-sm">
-            <UserAvatar user={blog.author} size={48} />
-            <div className="text-left">
-              <div className="font-semibold text-slate-900 text-lg">{name}</div>
-              <div className="text-slate-600 text-sm max-w-xs truncate">{bio}</div>
-            </div>
-          </div>
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-slate-900 mb-8 ...">{blog.title}</h1>
         </div>
       </div>
+      {blog.imageUrl && (
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 mb-12">
+          <img src={blog.imageUrl} alt={blog.title} className="w-full h-auto max-h-[500px] object-cover rounded-xl shadow-lg" />
+        </div>
+      )}
 
       {/* Content Section */}
       <div className="max-w-3xl mx-auto px-6 sm:px-8 pb-20">
-        <article className="bg-white/60 backdrop-blur-sm rounded-3xl border border-slate-200/40 shadow-sm p-8 sm:p-12">
+      <article className="bg-white/60 backdrop-blur-sm rounded-3xl border border-slate-200/40 shadow-sm p-8 sm:p-12">
           <div className="prose prose-lg prose-slate max-w-none">
             <div className="description text-slate-700 leading-relaxed">
               {description}
@@ -137,12 +127,8 @@ export const Blog = () => {
           </div>
         </div>
       </div>
-
-      {/* Comment Section */}
-      <CommentSection
-        postId={Number(id)}
-        currentUser={mappedUserForHeader}
-      />
+      
+      <CommentSection postId={Number(id)} currentUser={mappedUserForHeader} />
     </div>
   );
 };

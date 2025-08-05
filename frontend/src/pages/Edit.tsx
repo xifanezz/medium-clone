@@ -1,11 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState, lazy, Suspense, useRef, useCallback } from "react";
+import { useEffect, useState, lazy, Suspense, useRef, useCallback, ChangeEvent } from "react";
 import { Editor } from '@tiptap/core';
 import { Post } from "../types";
 import { api } from "../api";
 import { EditPageSkeleton } from "../component/Skeleton";
 import { useAuth } from "../context/AuthContext";
 import { usePageAction } from "../context/PageActionContext";
+import { supabase } from "../lib/supabaseClient";
+import { ImageUp, X } from "lucide-react";
+
 const Tiptap = lazy(() => import("../component/Tiptap"));
 
 const EditorPlaceholder = () => (
@@ -22,14 +25,17 @@ export function Edit(): JSX.Element {
   const [error, setError] = useState<string>("");
   const [initialTitle, setInitialTitle] = useState("");
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const [imageRemoved, setImageRemoved] = useState(false);
+
   const editorRef = useRef<Editor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
   const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Get the setter from context
   const { setSaveAction } = usePageAction();
 
   useEffect(() => {
@@ -49,6 +55,10 @@ export function Edit(): JSX.Element {
         } else {
           setBlog(result);
           setInitialTitle(result.title);
+          // Set initial image preview from existing blog data
+          setImagePreview(result.imageUrl || null);
+          setImageRemoved(false);
+          setImageFile(null);
         }
       } catch (err: any) {
         setError(err.message || "Failed to load blog post.");
@@ -59,38 +69,64 @@ export function Edit(): JSX.Element {
     fetchBlogForEdit();
   }, [id, currentUser, isAuthLoading, navigate]);
 
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setImageRemoved(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageRemoved(true);
+  };
+
   const handleSave = useCallback(async () => {
     const editor = editorRef.current;
     const currentTitle = titleRef.current?.value || "";
 
     if (!editor || !blog) {
-      const validationError = "Editor or blog data is not available.";
-      setError(validationError);
-      throw new Error(validationError);
+      throw new Error("Editor or blog data is not available.");
     }
     if (!currentTitle.trim() || editor.getHTML() === "<p></p>") {
-      const validationError = "Title and description cannot be empty.";
-      setError(validationError);
-      throw new Error(validationError);
+      throw new Error("Title and description cannot be empty.");
     }
+
+    let imageUrl: string | null | undefined = blog.imageUrl;
+
+    // Upload a new image if one was selected
+    if (imageFile && currentUser) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${currentUser.id}/${fileName}`;
+        const { data, error: uploadError } = await supabase.storage.from('post-images').upload(filePath, imageFile);
+
+        if (uploadError) throw new Error("Failed to upload featured image.");
+
+        const { data: { publicUrl } } = supabase.storage.from('post-images').getPublicUrl(data.path);
+        imageUrl = publicUrl;
+    } else if (imageRemoved) {
+        imageUrl = null; // Set to null if user removed the image
+    }
+
     try {
       setError("");
-      const result = await api.editPostById(blog.id, currentTitle, editor.getHTML());
+      // Pass the potentially updated imageUrl to the API
+      const result = await api.editPostById(blog.id, currentTitle, editor.getHTML(), imageUrl ||'');
       navigate(`/blog/${result.id}`);
     } catch (err: any) {
-      const errorMessage = err.message || "Failed to update blog post.";
-      setError(errorMessage);
+      setError(err.message || "Failed to update blog post.");
       throw err;
     }
-  }, [blog, navigate]); 
+  }, [blog, navigate, imageFile, imageRemoved, currentUser]);
 
-  // Effect to register the save action with the context
   useEffect(() => {
-    // Only set the save action if a blog is loaded (and editable)
     if (blog) {
       setSaveAction(handleSave);
     }
-    // On cleanup, we remove the action
     return () => setSaveAction(null);
   }, [blog, handleSave, setSaveAction]);
 
@@ -110,29 +146,43 @@ export function Edit(): JSX.Element {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 w-full">
-          <form>
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
+        {/* --- NEW UI for Image Upload --- */}
+        <div className="mb-6">
+            {imagePreview ? (
+            <div className="relative group">
+                <img src={imagePreview} alt="Featured post preview" className="w-full h-64 object-cover rounded-lg" />
+                <button onClick={removeImage} className="absolute top-2 right-2 p-1.5 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-colors">
+                <X size={16} />
+                </button>
+            </div>
+            ) : (
+            <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <ImageUp size={32} className="text-gray-400" />
+                <span className="mt-2 text-sm text-gray-500">Add a featured image</span>
+                <input id="image-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleImageChange} />
+            </label>
+            )}
+        </div>
+
+        <form>
             <textarea
-              ref={titleRef}
-              key={initialTitle}
-              defaultValue={initialTitle}
-              placeholder="Title"
-              className="w-full font-serif text-3xl sm:text-4xl lg:text-5xl mt-4 sm:mt-6 lg:mt-8 mb-2 sm:mb-4 border-b border-gray-300 focus:outline-none focus:border-gray-500 resize-none bg-transparent"
-              rows={2}
+            ref={titleRef}
+            key={initialTitle}
+            defaultValue={initialTitle}
+            placeholder="Title"
+            className="w-full font-serif text-3xl sm:text-4xl lg:text-5xl mt-4 sm:mt-6 lg:mt-8 mb-2 sm:mb-4 border-b border-gray-300 focus:outline-none focus:border-gray-500 resize-none bg-transparent"
+            rows={2}
             />
             <div className="w-full min-h-[400px] max-h-[600px] overflow-auto">
-              <Suspense fallback={<EditorPlaceholder />}>
+            <Suspense fallback={<EditorPlaceholder />}>
                 <Tiptap
-                  setEditor={(editorInstance) => { editorRef.current = editorInstance; }}
-                  initialContent={blog.description || ""}
+                setEditor={(editorInstance) => { editorRef.current = editorInstance; }}
+                initialContent={blog.description || ""}
                 />
-              </Suspense>
+            </Suspense>
             </div>
-          </form>
-        </div>
-      </div>
+        </form>
     </div>
   );
 }
