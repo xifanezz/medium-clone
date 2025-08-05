@@ -10,8 +10,8 @@ import { NavigationTabs } from '../component/Navigationtabs';
 import { PostsList } from '../component/Postlist';
 import { ProfilePageSkeleton } from '../component/Skeleton';
 import { EditProfileModal } from '../component/EditProfileModal';
-import { useAuth } from '../AuthContext';
-import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 export const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'bookmarks'>('home');

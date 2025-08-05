@@ -1,7 +1,7 @@
 // components/Avatar.tsx
 
 import { useState, useEffect } from 'react';
-import { avatarCache, fetchAndCacheAvatar } from '../lruAvatarCache';
+import { avatarCache, fetchAndCacheAvatar } from '../lib/lruAvatarCache';
 import { User } from '../types';
 
 export interface AvatarProps {

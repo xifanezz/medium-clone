@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Editor } from '@tiptap/core';
 import { useState, lazy, Suspense, useRef, useEffect, useCallback } from 'react';
 import { api } from "../api";
-import { usePageAction } from "../PageActionContext";
+import { usePageAction } from "../context/PageActionContext";
 
 const Tiptap = lazy(() => import("../component/Tiptap"));
 

@@ -8,8 +8,8 @@ import { Blog } from "./pages/Blog";
 import { Publish } from "./pages/Publish";
 import { Profile } from "./pages/Profile";
 import { Edit } from "./pages/Edit";
-import { AuthProvider } from './AuthContext';
-import { HeaderLayout } from './HeaderLayout';
+import { AuthProvider } from './context/AuthContext';
+import { HeaderLayout } from './layout/HeaderLayout';
 import './App.css';
 
 function App() {

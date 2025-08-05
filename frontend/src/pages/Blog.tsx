@@ -6,7 +6,7 @@ import DOMPurify from 'dompurify';
 import { BlogPageSkeleton } from "../component/Skeleton";
 import { CommentSection } from "../component/CommentSection";
 import { Post } from "../types";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
 
 

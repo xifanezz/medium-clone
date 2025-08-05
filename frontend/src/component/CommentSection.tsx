@@ -3,7 +3,7 @@ import { UserAvatar } from './Avatar';
 import { User } from '../types';
 import { CommentItem } from './CommentItem';
 import { CommentSectionSkeleton } from './Skeleton';
-import { useComments } from '../useComments';
+import { useComments } from '../hooks/useComments';
 
 export interface CommentSectionProps {
   postId: number;

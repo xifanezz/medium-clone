@@ -5,9 +5,8 @@ import { Button } from "../component/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Quotes } from "../component/Quotes";
-import * as Icons from "../Icons";
-import { supabase } from "../supabaseClient";
-import { Google } from "./Signin";
+import { Error as ErrorIcon, Google } from "../Icons";
+import { supabase } from "../lib/supabaseClient";
 
 export const googleSignIn = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -93,7 +92,7 @@ export const Signup = () => {
                 className="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
                 role="alert"
               >
-                <Icons.Error />
+                <ErrorIcon />
                 <span className="sr-only">Error</span>
                 <div>
                   <span className="font-medium">Error alert!</span> {error}

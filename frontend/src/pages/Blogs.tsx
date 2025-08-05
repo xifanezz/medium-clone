@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Post } from "../types";
 import { BlogCardSkeleton, TagFilterSkeleton } from "../component/Skeleton";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 export const Blogs = () => {
   const [posts, setPosts] = useState<Post[]>([]);

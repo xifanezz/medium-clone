@@ -4,8 +4,8 @@ import { Editor } from '@tiptap/core';
 import { Post } from "../types";
 import { api } from "../api";
 import { EditPageSkeleton } from "../component/Skeleton";
-import { useAuth } from "../AuthContext";
-import { usePageAction } from "../PageActionContext";
+import { useAuth } from "../context/AuthContext";
+import { usePageAction } from "../context/PageActionContext";
 const Tiptap = lazy(() => import("../component/Tiptap"));
 
 const EditorPlaceholder = () => (

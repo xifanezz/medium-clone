@@ -1,8 +1,8 @@
 // src/hooks/useComments.ts
 
 import { useState, useCallback } from "react";
-import { api } from "./api";
-import { PostComment, User } from "./types";
+import { api } from "../api";
+import { PostComment, User } from "../types";
 
 const updateCommentInTree = (
   comments: PostComment[],

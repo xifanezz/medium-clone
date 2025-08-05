@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Bookmark, Share2 } from "lucide-react";
 import Avatar from "./Avatar";
 import parser from "html-react-parser";
@@ -21,6 +21,9 @@ export function BlogCard({
   const [isClapped, setIsClapped] = useState(post.isClapped || false);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked || false);
   const [isLoading, setIsLoading] = useState({ clap: false, bookmark: false });
+  
+  // Initialize the navigate function
+  const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -52,19 +55,15 @@ export function BlogCard({
 
   const handleClapClick = async () => {
     if (isLoading.clap) return;
-
-    // Optimistic UI update
     const originalClapCount = clapCount;
     const originalIsClapped = isClapped;
     setClapCount(prev => (originalIsClapped ? prev - 1 : prev + 1));
     setIsClapped(prev => !prev);
     setIsLoading(prev => ({ ...prev, clap: true }));
-
     try {
       await api.toggleClap(post.id);
     } catch (error) {
       console.error("Error toggling clap:", error);
-      // Revert UI on error
       setClapCount(originalClapCount);
       setIsClapped(originalIsClapped);
     } finally {
@@ -74,17 +73,13 @@ export function BlogCard({
 
   const handleBookmarkClick = async () => {
     if (isLoading.bookmark) return;
-
-    // Optimistic UI update
     const originalIsBookmarked = isBookmarked;
     setIsBookmarked(prev => !prev);
     setIsLoading(prev => ({ ...prev, bookmark: true }));
-
     try {
       await api.toggleBookmark(post.id);
     } catch (error) {
       console.error("Error toggling bookmark:", error);
-      // Revert UI on error
       setIsBookmarked(originalIsBookmarked);
     } finally {
       setIsLoading(prev => ({ ...prev, bookmark: false }));
@@ -102,6 +97,13 @@ export function BlogCard({
     } else {
       navigator.clipboard.writeText(url);
     }
+  };
+
+
+  const handleCommentsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/blog/${post.id}#comments`);//#TODO : make this redirection work
   };
 
   return (
@@ -151,14 +153,18 @@ export function BlogCard({
                     <Heart className={`h-4 w-4 ${isClapped ? "fill-red-500 text-red-500" : ""}`} />
                     <span className="text-xs font-sans">{clapCount > 0 ? clapCount : ""}</span>
                   </button>
-                  <Link to={`/blog/${post.id}#comments`} onClick={(e) => e.stopPropagation()}>
-                    <button className="flex items-center gap-1 hover:text-green-500 transition-colors" title="Responses">
-                      <MessageCircle className="h-4 w-4" />
-                      {(post.responseCount || 0) > 0 &&
-                        <span className="text-xs font-sans">{(post.responseCount || 0) > 0 ? post.responseCount : ""}</span>
-                      }
-                    </button>
-                  </Link>
+                  {/* --- FIX --- */}
+                  {/* Replaced the nested <Link> with a <button> that uses our new handler */}
+                  <button
+                    onClick={handleCommentsClick}
+                    className="flex items-center gap-1 hover:text-green-500 transition-colors"
+                    title="Responses"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {(post.responseCount || 0) > 0 &&
+                      <span className="text-xs font-sans">{(post.responseCount || 0) > 0 ? post.responseCount : ""}</span>
+                    }
+                  </button>
                   <button
                     onClick={(e) => handleEngagementClick(e, handleBookmarkClick)}
                     className={`hover:text-green-500 transition-colors ${isBookmarked ? "text-green-500" : "text-gray-500"} ${isLoading.bookmark ? "opacity-50 cursor-not-allowed" : ""}`}

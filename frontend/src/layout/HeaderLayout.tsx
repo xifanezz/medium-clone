@@ -1,14 +1,15 @@
 // src/layouts/HeaderLayout.tsx
 import { Link, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "./AuthContext";
-import { supabase } from "./supabaseClient";
-import medium from '../assets/medium.png';
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabaseClient";
+import medium from '/medium.svg';
+import m from '/M.svg'; 
 import { ArrowLeft, LogOut, Pencil, Plus, Send } from "lucide-react";
-import { UserAvatar } from "./component/Avatar";
-import { User } from "./types";
-import { api } from "./api";
+import { UserAvatar } from "../component/Avatar";
+import { User } from "../types";
+import { api } from "../api";
 import { useEffect, useState } from "react";
-import { PageActionProvider, usePageAction } from "./PageActionContext";
+import { PageActionProvider, usePageAction } from "../context/PageActionContext";
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -57,23 +58,22 @@ const AppHeader = () => {
 
   const renderActionButtons = () => {
     if (isAuthLoading || location.pathname === '/signin' || location.pathname === '/signup') return null;
-
-    const buttonClasses = "flex items-center gap-2 text-sm font-medium rounded-full px-4 py-2 transition-colors disabled:opacity-50";
+    const buttonClasses = "flex items-center gap-2 text-sm font-medium rounded-full transition-colors disabled:opacity-50 p-2 sm:px-4 sm:py-2";
 
     if (location.pathname.startsWith('/edit/')) {
       return (
-        <button onClick={executeSaveAction} disabled={isSaving} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`}>
+        <button onClick={executeSaveAction} disabled={isSaving} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`} aria-label="Publish Changes">
           {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Send size={16} />}
-          <span>{isSaving ? 'Publishing...' : 'Publish Changes'}</span>
+          <span className="hidden sm:inline">{isSaving ? 'Publishing...' : 'Publish Changes'}</span>
         </button>
       );
     }
     
     if (location.pathname === '/publish') {
        return (
-        <button onClick={executeSaveAction} disabled={isSaving} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`}>
+        <button onClick={executeSaveAction} disabled={isSaving} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`} aria-label="Publish">
           {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Plus size={16} />}
-          <span>{isSaving ? 'Publishing...' : 'Publish'}</span>
+          <span className="hidden sm:inline">{isSaving ? 'Publishing...' : 'Publish'}</span>
         </button>
       );
     }
@@ -81,11 +81,13 @@ const AppHeader = () => {
     if (currentUser && isAuthor && !isCheckingAuthor) {
       return (
         <>
-          <button onClick={() => navigate(`/edit/${params.id}`)} className={`${buttonClasses} bg-gray-100 text-gray-800 hover:bg-gray-200`}>
-            <Pencil size={16} /><span>Edit Post</span>
+          <button onClick={() => navigate(`/edit/${params.id}`)} className={`${buttonClasses} bg-gray-100 text-gray-800 hover:bg-gray-200`} aria-label="Edit Post">
+            <Pencil size={16} />
+            <span className="hidden sm:inline">Edit Post</span>
           </button>
-          <button onClick={() => navigate('/publish')} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`}>
-            <Plus size={16} /><span>Write</span>
+          <button onClick={() => navigate('/publish')} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`} aria-label="Write new post">
+            <Plus size={16} />
+            <span className="hidden sm:inline">Write</span>
           </button>
         </>
       );
@@ -93,8 +95,9 @@ const AppHeader = () => {
 
     if (currentUser) {
       return (
-        <button onClick={() => navigate('/publish')} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`}>
-          <Plus size={16} /><span>Write</span>
+        <button onClick={() => navigate('/publish')} className={`${buttonClasses} bg-green-600 text-white hover:bg-green-700`} aria-label="Write new post">
+          <Plus size={16} />
+          <span className="hidden sm:inline">Write</span>
         </button>
       );
     }
@@ -110,9 +113,12 @@ const AppHeader = () => {
             <ArrowLeft size={20} />
           </button>
         )}
-        <Link to="/blogs" aria-label="Go to homepage"><img className="h-8" alt="Logo" src={medium} /></Link>
+        <Link to="/blogs" aria-label="Go to homepage">
+          <img className="hidden sm:block h-8" alt="Logo" src={medium} />
+          <img className="block sm:hidden h-8" alt="Logo" src={m} />
+        </Link>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {renderActionButtons()}
         {isAuthLoading ? <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
         : mappedUser ? (
