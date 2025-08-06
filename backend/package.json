@@ -2,15 +2,18 @@
   "name": "backend",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "sentry:sourcemaps": "_SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=sumitbhuia --project=medium-clone-backend && sentry-cli sourcemaps upload --org=sumitbhuia --project=medium-clone-backend --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
+    "postdeploy": "npm run sentry:sourcemaps"
   },
   "dependencies": {
     "@google/genai": "^1.11.0",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.8.2",
     "@prisma/extension-accelerate": "^2.0.0",
+    "@sentry/cloudflare": "^10.1.0",
     "@sumitbhuia/medium_common": "^2.0.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.59",
     "@cloudflare/workers-types": "^4.20250523.0",
+    "@sentry/cli": "^2.50.2",
     "@types/node": "^22.15.21",
     "dotenv-cli": "^8.0.0",
     "prisma": "^6.8.2",
