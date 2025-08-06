@@ -367,3 +367,86 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+
+/* Syntax Highlighting Theme (e.g., GitHub theme for highlight.js) */
+.prose .hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  background: #f6f8fa;
+  color: #24292e;
+  border-radius: 6px;
+}
+.prose .hljs-comment,
+.prose .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.prose .hljs-keyword,
+.prose .hljs-selector-tag,
+.prose .hljs-subst {
+  color: #d73a49;
+  font-weight: bold;
+}
+.prose .hljs-number,
+.prose .hljs-literal,
+.prose .hljs-variable,
+.prose .hljs-template-variable,
+.prose .hljs-tag .hljs-attr {
+  color: #005cc5;
+}
+.prose .hljs-string,
+.prose .hljs-doctag {
+  color: #032f62;
+}
+.prose .hljs-title,
+.prose .hljs-section,
+.prose .hljs-selector-id {
+  color: #6f42c1;
+  font-weight: bold;
+}
+.prose .hljs-subst {
+  font-weight: normal;
+}
+.prose .hljs-type,
+.prose .hljs-class .hljs-title {
+  color: #d73a49;
+  font-weight: bold;
+}
+.prose .hljs-tag,
+.prose .hljs-name,
+.prose .hljs-attribute {
+  color: #22863a;
+  font-weight: normal;
+}
+.prose .hljs-regexp,
+.prose .hljs-link {
+  color: #032f62;
+}
+.prose .hljs-symbol,
+.prose .hljs-bullet {
+  color: #d73a49;
+}
+.prose .hljs-built_in,
+.prose .hljs-builtin-name {
+  color: #005cc5;
+}
+.prose .hljs-meta {
+  color: #6a737d;
+  font-weight: bold;
+}
+.prose .hljs-deletion {
+  background: #ffeef0;
+  color: #d73a49;
+}
+.prose .hljs-addition {
+  background: #f0fff4;
+  color: #22863a;
+}
+.prose .hljs-emphasis {
+  font-style: italic;
+}
+.prose .hljs-strong {
+  font-weight: bold;
+}
