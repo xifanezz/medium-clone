@@ -29,14 +29,16 @@ jobs:
         working-directory: ./backend
 
       - name: Deploy to Cloudflare Workers
-        run: npm run deploy
-        working-directory: ./backend
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: './backend'
+          command: deploy --minify src/index.ts --outdir dist --upload-source-maps --var SENTRY_RELEASE:${{ github.run_number }}
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-
+      # Source maps are handled by postdeploy script in package.json
       - name: Upload Source Maps to Sentry (Post Deploy)
         run: npm run postdeploy
         working-directory: ./backend
