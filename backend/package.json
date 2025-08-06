@@ -2,7 +2,7 @@
   "name": "backend",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts --name backend --compatibility-date=2023-12-01 --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
+    "deploy": "wrangler deploy --minify src/index.ts --name backend --compatibility-date=2023-12-01 --compatibility-flags=\"nodejs_compat\" --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
     "test": "vitest",
     "test:run": "vitest run",
     "sentry:sourcemaps": "_SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=sumitbhuia --project=medium-clone-backend && sentry-cli sourcemaps upload --org=sumitbhuia --project=medium-clone-backend --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
