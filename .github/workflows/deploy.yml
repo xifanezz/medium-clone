@@ -9,6 +9,7 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     name: Deploy Backend to Cloudflare
+    environment: Production
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -33,29 +34,22 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-          name: backend 
           workingDirectory: 'backend'
-
-          secrets: |
-            SUPABASE_JWT_SECRET
-            DATABASE_URL
-            DIRECT_DATABASE_URL
-            GEMINI_API_KEY
-            SENTRY_DSN
+          command: npm run deploy
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
 
   deploy-frontend:
     runs-on: ubuntu-latest
     name: Deploy Frontend to Vercel
     needs: deploy-backend
+    environment: Production
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -79,11 +73,11 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-      - name: Upload Source Maps to Sentry
-        run: npx @sentry/cli sourcemaps inject --org sumitbhuia --project medium-clone-frontend ./dist && npx @sentry/cli sourcemaps upload --org sumitbhuia --project medium-clone-frontend ./dist
-        working-directory: ./frontend
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      # - name: Upload Source Maps to Sentry
+      #   run: npx @sentry/cli sourcemaps inject --org sumitbhuia --project medium-clone-frontend ./dist && npx @sentry/cli sourcemaps upload --org sumitbhuia --project medium-clone-frontend ./dist
+      #   working-directory: ./frontend
+      #   env:
+      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
