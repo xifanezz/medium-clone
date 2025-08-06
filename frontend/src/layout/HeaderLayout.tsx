@@ -114,7 +114,7 @@ const AppHeader = () => {
           </button>
         )}
         <Link to="/blogs" aria-label="Go to homepage">
-          <img className="hidden sm:block h-8" alt="Logo" src={medium} />
+          <img className="hidden sm:block h-7" alt="Logo" src={medium} />
           <img className="block sm:hidden h-8" alt="Logo" src={m} />
         </Link>
       </div>

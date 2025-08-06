@@ -20,6 +20,71 @@ const calculateReadTime = (htmlContent: string) => {
     return Math.ceil(wordCount / 225);
 };
 
+export async function getFeed(c: Context) {
+  const prisma = getPrisma(c.env.DATABASE_URL);
+  const userId = c.get("userId");
+
+  try {
+    // Find all the users that the current user is following.
+    const following = await prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+
+    //  Extract their IDs into a simple array.
+    const followingIds = following.map(f => f.followingId);
+    // construct the feed
+    const feedPosts = await prisma.post.findMany({
+      where: {
+        published: true,
+        userId: {
+          in: followingIds,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        readTime: true,
+        imageUrl: true,
+        author: { select: { username: true, displayName: true, avatar: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+        _count: { select: { claps: true, comments: true, bookmarks: true } },
+        claps: { where: { userId }, select: { id: true } },
+        bookmarks: { where: { userId }, select: { id: true } },
+      },
+      orderBy: {
+        publishedAt: "desc",
+      },
+    });
+
+    const formattedPosts = feedPosts.map(post => ({
+      id: post.id,
+      title: post.title,
+      snippet: createSnippet(post.description),
+      createdAt: post.createdAt,
+      readTime: post.readTime,
+      imageUrl: post.imageUrl,
+      author: post.author,
+      tags: post.tags.map(t => t.tag.name),
+      clapCount: post._count.claps,
+      responseCount: post._count.comments,
+      bookmarkCount: post._count.bookmarks,
+      isClapped: !!post.claps?.length,
+      isBookmarked: !!post.bookmarks?.length,
+    }));
+
+    return c.json({ data: formattedPosts }, StatusCodes.OK);
+  } catch (error) {
+    console.error("Error fetching personalized feed:", error);
+    return c.json(
+      { error: "Failed to fetch feed" },
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
 export async function createPost(c: Context) {
   const prisma = getPrisma(c.env.DATABASE_URL);
   const aiTagService = new TagGen(c.env.GEMINI_API_KEY);

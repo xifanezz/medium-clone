@@ -40,6 +40,13 @@ const handleApiError = async (response: Response) => {
 };
 
 export const api = {
+  async getFeed(): Promise<Post[]> {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${BASE_URL}/api/v1/blog/feed`, { headers });
+    if (!response.ok) await handleApiError(response);
+    return (await response.json()).data;
+  },
+
   async getPostById(postId: number): Promise<Post> {
     const response = await fetch(`${BASE_URL}/api/v1/blog/${postId}`);
     if (!response.ok) await handleApiError(response);

@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { BlogCard } from "../component/BlogCard";
-import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Post } from "../types";
 import { BlogCardSkeleton, TagFilterSkeleton } from "../component/Skeleton";
 import { useAuth } from "../context/AuthContext";
 
-// Helper function for backward compatibility
 const createSnippet = (htmlContent: string, length = 150) => {
   if (!htmlContent) return '';
   const plainText = htmlContent.replace(/<[^>]+>/g, '');
@@ -21,10 +19,19 @@ export const Blogs = () => {
 
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
+  
+  // --- Default to 'foryou' if logged in, otherwise 'all' ---
+  const [activeTab, setActiveTab] = useState<'foryou' | 'all'>(
+    currentUser ? 'foryou' : 'all'
+  );
 
-  const navigate = useNavigate();
-  const { isLoading: isAuthLoading } = useAuth();
+  useEffect(() => {
+    if (!isAuthLoading) {
+      setActiveTab(currentUser ? 'foryou' : 'all');
+    }
+  }, [currentUser, isAuthLoading]);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -32,34 +39,38 @@ export const Blogs = () => {
     const fetchPosts = async () => {
       try {
         setIsPostsLoading(true);
-        const result = await api.getAllPost();
+        setError("");
+        
+        let result;
+        if (activeTab === 'foryou' && currentUser) {
+          result = await api.getFeed();
+        } else {
+          result = await api.getAllPost();
+        }
 
         const formattedPosts: Post[] = result.map((post: any) => ({
           id: post.id,
           title: post.title,
           description: post.description || '',
-          // Use snippet from API if available, otherwise create it for backward compatibility
           snippet: post.snippet || createSnippet(post.description || ''),
           createdAt: post.createdAt,
           readTime: post.readTime ?? 0,
-          clapCount: post._count?.claps ?? 0,
-          responseCount: post._count?.comments ?? 0,
-          bookmarkCount: post._count?.bookmarks ?? 0,
+          clapCount: post.clapCount ?? 0,
+          responseCount: post.responseCount ?? 0,
+          bookmarkCount: post.bookmarkCount ?? 0,
           isClapped: post.isClapped ?? false,
           isBookmarked: post.isBookmarked ?? false,
           tags: post.tags || [],
           imageUrl: post.imageUrl ?? "",
-          author: {
-            username: post.author?.username || "user",
-            displayName: post.author?.displayName || "user",
-            avatar: post.author?.avatar || "",
-            bio: post.author?.bio || "",
-          },
+          author: post.author,
         }));
 
         setPosts(formattedPosts);
-        const uniqueTags = [...new Set(formattedPosts.flatMap(p => p.tags))];
-        setAllTags(uniqueTags.sort());
+
+        if (activeTab === 'all') {
+            const uniqueTags = [...new Set(formattedPosts.flatMap(p => p.tags))];
+            setAllTags(uniqueTags.sort());
+        }
 
       } catch (err: any) {
         setError(err.message || "Failed to load posts.");
@@ -69,19 +80,14 @@ export const Blogs = () => {
     };
 
     fetchPosts();
-  }, [isAuthLoading, navigate]);
+  }, [currentUser, activeTab, isAuthLoading]);
 
-  useEffect(() => {
-    if (selectedTags.length === 0) {
-      setFilteredPosts(posts);
-    } else {
-      setFilteredPosts(
-        posts.filter(post =>
-          selectedTags.every(tag => post.tags.includes(tag))
-        )
-      );
+  const filteredPosts = useMemo(() => {
+    if (activeTab === 'all' && selectedTags.length > 0) {
+      return posts.filter(post => selectedTags.every(tag => post.tags.includes(tag)));
     }
-  }, [selectedTags, posts]);
+    return posts;
+  }, [posts, selectedTags, activeTab]);
 
   const handleTagClick = (tag: string) => {
     setSelectedTags(prev =>
@@ -89,9 +95,10 @@ export const Blogs = () => {
     );
   };
 
-  if (isAuthLoading || isPostsLoading) {
+  if (isAuthLoading) {
     return (
       <div className="flex-grow w-full max-w-4xl p-4 mx-auto sm:p-6 md:p-8">
+        <div className="h-10 w-48 bg-gray-200 rounded-md mb-4 animate-pulse"></div>
         <TagFilterSkeleton />
         <div className="mt-4">
           {[...Array(5)].map((_, i) => <BlogCardSkeleton key={i} />)}
@@ -100,46 +107,72 @@ export const Blogs = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-20">
-        <p className="text-red-600">{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex-grow w-full max-w-4xl p-4 mx-auto sm:p-6 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Feed</h1>
-      <div className="py-4 border-b border-gray-200">
-        <div className="flex items-center space-x-3 overflow-x-auto pb-2 no-scrollbar">
-          {allTags.map(tag => (
+      <div className="flex items-center border-b border-gray-200 mb-4">
+        {/* --- "Following" tab only shows for logged-in users --- */}
+        {currentUser && (
             <button
-              key={tag}
-              onClick={() => handleTagClick(tag)}
-              className={`text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                selectedTags.includes(tag)
-                  ? 'bg-gray-800 text-white focus-visible:ring-gray-700 px-4 py-1.5'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-400 px-4 py-1.5'
-              }`}
+                onClick={() => setActiveTab('foryou')}
+                className={`py-3 px-4 text-sm font-medium transition-colors ${activeTab === 'foryou' ? 'border-b-2 border-gray-800 text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              {tag}
+                Following
             </button>
-          ))}
-        </div>
-      </div>
-      <div className="mt-4">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))
-        ) : (
-          <div className="text-center py-16">
-            <h3 className="text-lg font-medium text-gray-900">No posts found</h3>
-            <p className="mt-1 text-sm text-gray-500">Try adjusting your selected tags.</p>
-          </div>
         )}
+        <button
+            onClick={() => setActiveTab('all')}
+            className={`py-3 px-4 text-sm font-medium transition-colors ${activeTab === 'all' ? 'border-b-2 border-gray-800 text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+            {/* --- Label is now more intuitive --- */}
+            Explore
+        </button>
       </div>
+
+      {isPostsLoading ? (
+        <div className="mt-4">
+            {[...Array(5)].map((_, i) => <BlogCardSkeleton key={i} />)}
+        </div>
+      ) : error ? (
+        <div className="text-center py-20"><p className="text-red-600">{error}</p></div>
+      ) : (
+        <>
+            {activeTab === 'all' && (
+                <div className="py-4">
+                    <div className="flex items-center space-x-3 overflow-x-auto pb-2 no-scrollbar">
+                        {allTags.map(tag => (
+                        <button
+                            key={tag}
+                            onClick={() => handleTagClick(tag)}
+                            className={`text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                                selectedTags.includes(tag)
+                                ? 'bg-gray-800 text-white focus-visible:ring-gray-700 px-4 py-1.5'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-400 px-4 py-1.5'
+                            }`}
+                        >
+                            {tag}
+                        </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <div className="mt-4">
+            {filteredPosts.length > 0 ? (
+                filteredPosts.map((post) => (
+                <BlogCard key={post.id} post={post} showAuthorInfo={true} />
+                ))
+            ) : (
+                <div className="text-center py-16">
+                <h3 className="text-lg font-medium text-gray-900">
+                    {activeTab === 'foryou' ? "Your feed is empty" : "No posts found"}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                    {activeTab === 'foryou' ? "Follow some authors to see their posts here." : "Try adjusting your selected tags."}
+                </p>
+                </div>
+            )}
+            </div>
+        </>
+      )}
     </div>
   );
 };
