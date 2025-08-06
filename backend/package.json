@@ -2,7 +2,7 @@
   "name": "backend",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
+    "deploy": "wrangler deploy --minify src/index.ts --name backend --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
     "test": "vitest",
     "test:run": "vitest run",
     "sentry:sourcemaps": "_SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=sumitbhuia --project=medium-clone-backend && sentry-cli sourcemaps upload --org=sumitbhuia --project=medium-clone-backend --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
@@ -17,7 +17,9 @@
     "@sumitbhuia/medium_common": "^2.0.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
-    "hono": "^4.7.10"
+    "@tiptap/extension-code-block-lowlight": "^3.0.9",
+    "hono": "^4.7.10",
+    "lowlight": "^3.3.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.59",
