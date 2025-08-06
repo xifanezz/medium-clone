@@ -27,23 +27,30 @@ jobs:
       - name: Run Backend Tests
         run: npm run test:run
         working-directory: ./backend
-
+      
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: './backend'
-          command: deploy --minify src/index.ts --outdir dist --upload-source-maps --var SENTRY_RELEASE:${{ github.run_number }}
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      # Source maps are handled by postdeploy script in package.json
-      - name: Upload Source Maps to Sentry (Post Deploy)
-        run: npm run postdeploy
-        working-directory: ./backend
+          name: backend 
+          workingDirectory: 'backend'
+
+          secrets: |
+            SUPABASE_JWT_SECRET
+            DATABASE_URL
+            DIRECT_DATABASE_URL
+            GEMINI_API_KEY
+            SENTRY_DSN
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -71,6 +78,12 @@ jobs:
       - name: Build Frontend
         run: npm run build
         working-directory: ./frontend
+
+      - name: Upload Source Maps to Sentry
+        run: npx @sentry/cli sourcemaps inject --org sumitbhuia --project medium-clone-frontend ./dist && npx @sentry/cli sourcemaps upload --org sumitbhuia --project medium-clone-frontend ./dist
+        working-directory: ./frontend
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
