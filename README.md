@@ -1,5 +1,5 @@
 # Medium Clone
-  <img src="https://skillicons.dev/icons?i=githubactions,supabase,vercel,vitest,typescript,prisma,postgres,docker,cloudflare,workers,vite,npm,react,nodejs,tailwind"/>
+  <img src="https://skillicons.dev/icons?i=sentry,githubactions,supabase,vercel,vitest,typescript,prisma,postgres,docker,cloudflare,workers,vite,react,nodejs,tailwind"/>
 
 Medium Clone is a feature-rich, production-ready blogging application inspired by Medium. It's built from the ground up with a modern, serverless, and type-safe technology stack, designed to be performant, scalable, and maintainable. This project serves as a comprehensive demonstration of advanced full-stack development practices, from database architecture to automated CI/CD pipelines.
 
