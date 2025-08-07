@@ -63,7 +63,11 @@ export const Blogs = () => {
         }
 
       } catch (err: any) {
-        setError(err.message || "Failed to load posts.");
+        if (activeTab === 'foryou' && err.message.includes('not found')) {
+            setPosts([]);
+        } else {
+            setError(err.message || "Failed to load posts.");
+        }
       } finally {
         setIsPostsLoading(false);
       }
