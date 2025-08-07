@@ -19,19 +19,9 @@ export const Blogs = () => {
 
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  
+  const [activeTab, setActiveTab] = useState<'foryou' | 'all'>('all');
   const { user: currentUser, isLoading: isAuthLoading } = useAuth();
-  
-  // --- Default to 'foryou' if logged in, otherwise 'all' ---
-  const [activeTab, setActiveTab] = useState<'foryou' | 'all'>(
-    currentUser ? 'foryou' : 'all'
-  );
 
-  useEffect(() => {
-    if (!isAuthLoading) {
-      setActiveTab(currentUser ? 'foryou' : 'all');
-    }
-  }, [currentUser, isAuthLoading]);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -110,7 +100,6 @@ export const Blogs = () => {
   return (
     <div className="flex-grow w-full max-w-4xl p-4 mx-auto sm:p-6 md:p-8">
       <div className="flex items-center border-b border-gray-200 mb-4">
-        {/* --- "Following" tab only shows for logged-in users --- */}
         {currentUser && (
             <button
                 onClick={() => setActiveTab('foryou')}
@@ -123,7 +112,6 @@ export const Blogs = () => {
             onClick={() => setActiveTab('all')}
             className={`py-3 px-4 text-sm font-medium transition-colors ${activeTab === 'all' ? 'border-b-2 border-gray-800 text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
         >
-            {/* --- Label is now more intuitive --- */}
             Explore
         </button>
       </div>
