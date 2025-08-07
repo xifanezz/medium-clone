@@ -1,16 +1,12 @@
 name = "backend"
 compatibility_date = "2023-12-01"
-
 compatibility_flags = ["nodejs_compat"]
 
-[vars]
-SENTRY_DSN=""
-GEMINI_API_KEY=""
-DATABASE_URL=""
-DIRECT_DATABASE_URL=""
-SUPABASE_JWT_SECRET=""
-SUPABASE_URL=""
-SUPABASE_ANON_KEY=""
+[observability]
+enabled = true
+
+#[vars]
+
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"

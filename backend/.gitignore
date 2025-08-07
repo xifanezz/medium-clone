@@ -14,15 +14,12 @@ dist/
 # deps
 node_modules/
 .wrangler
-wrangler.toml
 
 # env
 .env
 .env.production
 .dev.vars
-./wrangler.toml
-wrangler.toml
-.wrangler.toml
+
 # logs
 logs/
 *.log

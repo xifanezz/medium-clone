@@ -13,7 +13,6 @@ export interface Env {
   DIRECT_DATABASE_URL: string;
   SUPABASE_JWT_SECRET: string;
   SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
